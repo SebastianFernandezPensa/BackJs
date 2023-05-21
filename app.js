@@ -1,57 +1,86 @@
 const ProductManager = require('./productManager');
 
-// Crear una instancia de ProductManager con la ruta del archivo
-const path = './productos.json';
-const productManager = new ProductManager(path);
+const express = require('express');
 
-// Agregar productos de prueba
-const product1 = {
-  title: 'Producto 1',
-  description: 'Descripción del Producto 1',
-  price: 10,
-  thumbnail: 'imagen1.png',
-  code: 'ABC123',
-  stock: 5
-};
+const app = express();
 
-const product2 = {
-  title: 'Producto 2',
-  description: 'Descripción del Producto 2',
-  price: 20,
-  thumbnail: 'imagen2.png',
-  code: 'DEF456',
-  stock: 10
-};
+const productManager = new ProductManager('./productos.json');
 
-try {
-  productManager.addProduct(product1);
-  productManager.addProduct(product2);
+app.get('/products', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 0;
+    const products = await productManager.getProducts(limit);
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
-  // Obtener todos los productos
-  const allProducts = productManager.getProducts();
-  console.log('Todos los productos:', allProducts);
+const PORT = 3001; // Puerto en el que se ejecutará el servidor
 
-  // Obtener un producto por su ID
-  const productId = 1; // Reemplazar con el ID válido
-  const productById = productManager.getProductById(productId);
-  console.log('Producto por ID:', productById);
+app.get('/products/code/:code', async (req, res) => {
+    try {
+      const productCode = req.params.code;
+      const product = await productManager.getProductByCode(productCode);
+  
+      if (!product) {
+        res.status(404).json({ error: 'Product not found' });
+      } else {
+        res.json(product);
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
 
-  // Actualizar un campo de un producto
-  const productIdToUpdate = 2; // Reemplazar con el ID válido
-  const fieldToUpdate = 'price'; // Reemplazar con el campo válido
-  const newValue = 30; // Nuevo valor
-  productManager.updateProduct(productIdToUpdate, fieldToUpdate, newValue);
-  const updatedProduct = productManager.getProductById(productIdToUpdate);
-  console.log('Producto actualizado:', updatedProduct);
+app.listen(PORT, () => {
+  console.log(`Servidor Express escuchando en el puerto ${PORT}`);
+});
 
-  // Eliminar un producto
-  const productIdToDelete = 1; // Reemplazar con el ID válido
-  const deletedProduct = productManager.deleteProduct(productIdToDelete);
-  console.log('Producto eliminado:', deletedProduct);
 
-  // Obtener todos los productos después de eliminar uno
-  const remainingProducts = productManager.getProducts();
-  console.log('Productos restantes:', remainingProducts);
-} catch (error) {
-  console.error('Error:', error.message);
-}
+
+
+
+// async function testProductManager() {
+//     try {
+//       // Agregar un producto
+//       const productId = await productManager.addProduct({
+//         title: 'Producto 1',
+//         description: 'Descripción del Producto 1',
+//         price: 10,
+//         thumbnail: 'ruta/imagen1.jpg',
+//         code: '123456',
+//         stock: 5,
+//       });
+//       console.log('Producto agregado. ID:', productId);
+  
+//       // Obtener todos los productos
+//       const allProducts = await productManager.getProducts();
+//       console.log('Todos los productos:', allProducts);
+  
+//       // Buscar un producto por su id
+//       const productIdToFind = 1; // Reemplaza con el id de un producto existente
+//       const productById = await productManager.getProductById(productIdToFind);
+//       console.log('Producto por ID:', productById);
+  
+//       // Actualizar un producto
+//       const productIdToUpdate = 1; // Reemplaza con el id de un producto existente
+//       await productManager.updateProduct(productIdToUpdate, 'price', 15);
+//       console.log('Producto actualizado.');
+  
+//       // Eliminar un producto
+//       const productIdToDelete = 1; // Reemplaza con el id de un producto existente
+//       await productManager.deleteProduct(productIdToDelete);
+//       console.log('Producto eliminado.');
+  
+//       // Obtener todos los productos después de la eliminación
+//       const remainingProducts = await productManager.getProducts();
+//       console.log('Productos restantes:', remainingProducts);
+//     } catch (error) {
+//       console.error(error);
+//     }
+//   }
+  
+//   testProductManager();
+  

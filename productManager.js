@@ -1,94 +1,91 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 
 class ProductManager {
-	constructor(path, products = []) {
-    	this.path = path;
-    	this.products = products;
-    	this.lastProductId = 0;
-    	this.loadProductsFromFile();
-}
+  constructor(path) {
+    this.path = path;
+    this.products = [];
+    this.loadProductsFromFile();
+  }
 
+  async saveProductsToFile(products) {
+    const data = JSON.stringify(products, null, 2);
+    await fs.writeFile(this.path, data);
+  }
 
-
-addProduct(product) {
-    if (!this.isFieldValid(product.code)) {
-    	throw new Error("El código del producto es inválido o está duplicado.");
+  async loadProductsFromFile() {
+    try {
+      const data = await fs.readFile(this.path, 'utf-8');
+      this.products = JSON.parse(data);
+    } catch (error) {
+      console.error('Error loading products from file:', error);
     }
+  }
 
-    if (!this.areAllFieldsRequired(product)) {
-    	throw new Error("Todos los campos del producto son obligatorios.");
-    }
-
-    const newProduct = {
-    	...product,
-    	id: ++this.lastProductId
-    };
-
-    this.products.push(newProduct);
-    this.saveProductsToFile();
-}
-
-getProducts() {
+  async getProducts() {
+    await this.loadProductsFromFile();
     return this.products;
-}
+  }
 
-getProductById(id) {
-    const product = this.products.find(product => product.id === id);
+  async getProductById(id) {
+    const product = this.products.find((p) => p.id === id);
     if (!product) {
-    	throw new Error("Producto no encontrado.");
+      throw new Error('Product not found');
     }
     return product;
-}
+  }
 
-updateProduct(productId, fieldToUpdate, newValue) {
-    const product = this.getProductById(productId);
-
-    if (fieldToUpdate === "id") {
-    	throw new Error("No se puede modificar el ID del producto.");
+  async getProductByCode(code) {
+    const product = this.products.find((p) => p.code === code);
+    if (!product) {
+      throw new Error('Product not found');
     }
+    return product;
+  }
+  
+  
 
-    product[fieldToUpdate] = newValue;
-    this.saveProductsToFile();
-}
+  async addProduct(product) {
+    await this.loadProductsFromFile();
+    const existingProduct = this.products.find((p) => p.code === product.code);
+    if (existingProduct) {
+      throw new Error('Product with the same code already exists');
+    }
+    const id = this.generateProductId();
+    product.id = id;
+    this.products.push(product);
+    await this.saveProductsToFile(this.products);
+    return id;
+  }
 
-deleteProduct(productId) {
-    const index = this.products.findIndex(product => product.id === productId);
+  async updateProduct(id, field, value) {
+    await this.loadProductsFromFile();
+    const product = this.products.find((p) => p.id === id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    product[field] = value;
+    await this.saveProductsToFile(this.products);
+  }
+
+  async deleteProduct(id) {
+    await this.loadProductsFromFile();
+    const index = this.products.findIndex((p) => p.id === id);
     if (index === -1) {
-		throw new Error("Producto no encontrado.");
+      throw new Error('Product not found');
     }
-
-    const deletedProduct = this.products.splice(index, 1)[0];
-    this.saveProductsToFile();
+    const deletedProduct = this.products.splice(index, 1);
+    await this.saveProductsToFile(this.products);
     return deletedProduct;
-}
+  }
 
-isFieldValid(code) {
-    return !this.products.some(product => product.code === code);
-}
-
-areAllFieldsRequired(product) {
-	return (
-    	product.title &&
-    	product.description &&
-    	product.price &&
-    	product.thumbnail &&
-    	product.code &&
-    	product.stock
-    );
-}
-
-saveProductsToFile() {
-    const data = JSON.stringify(this.products, null, 2);
-    fs.writeFileSync(this.path, data);
-}
-
-loadProductsFromFile() {
-    if (fs.existsSync(this.path)) {
-    	const data = fs.readFileSync(this.path, 'utf8');
-    	this.products = JSON.parse(data);
-    	this.lastProductId = Math.max(...this.products.map(product => product.id), 0);
+  generateProductId() {
+    let id = 1;
+    if (this.products.length > 0) {
+      const lastProduct = this.products[this.products.length - 1];
+      id = lastProduct.id + 1;
     }
-}
+    return id;
+  }
 }
 
 module.exports = ProductManager;
