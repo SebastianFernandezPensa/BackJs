@@ -31,5 +31,25 @@
     "stock": 10,
     "category": "Electrónica",
     "thumbnails": []
+  },
+  {
+    "title": "rere",
+    "price": "200",
+    "id": 6
+  },
+  {
+    "title": "rwqe",
+    "price": "300",
+    "id": 7
+  },
+  {
+    "title": "eee",
+    "price": "200",
+    "id": 8
+  },
+  {
+    "title": "rqwer",
+    "price": "100",
+    "id": 9
   }
 ]

@@ -51,7 +51,7 @@ app.get('/realtimeproducts', async (req, res) => {
   }
 });
 
-// ...
+
 
 io.on('connection', (socket) => {
   console.log('New client connected');
@@ -94,8 +94,6 @@ io.on('connection', (socket) => {
     console.log('Client disconnected');
   });
 });
-
-// ...
 
 
 server.listen(PORT, () => {
