@@ -1,7 +1,7 @@
 [
   {
     "id": 3,
-    "title": "Producto 2",
+    "title": "Proteina whey",
     "description": "Descripción del Producto 2",
     "code": "DEF4567",
     "price": 20,
@@ -12,7 +12,7 @@
   },
   {
     "id": 4,
-    "title": "Nuevo títul1",
+    "title": "Proteina isolada",
     "description": "Descripción del Producto 2",
     "code": "DEF45678",
     "price": 20,
@@ -26,7 +26,7 @@
     "title": "Nuevo producto",
     "description": "Descripción del nuevo producto",
     "code": "P001",
-    "price": 9.99,
+    "price": 203,
     "status": true,
     "stock": 10,
     "category": "Electrónica",

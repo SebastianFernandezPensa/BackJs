@@ -1,8 +1,9 @@
 const fs = require('fs').promises;
+const EventEmitter = require('events');
 
-
-class ProductManager {
+class ProductManager extends EventEmitter {
   constructor(path) {
+    super();
     this.path = path;
     this.products = [];
     this.loadProductsFromFile();
@@ -35,7 +36,6 @@ class ProductManager {
     }
     return product;
   }
-  
 
   async getProductByCode(code) {
     const product = this.products.find((p) => p.code === code);
@@ -44,13 +44,11 @@ class ProductManager {
     }
     return product;
   }
-  
-  
 
   async addProduct(product) {
     await this.loadProductsFromFile();
     const existingProductIndex = this.products.findIndex((p) => p.code === product.code);
-  
+
     if (existingProductIndex !== -1) {
       // Actualizar el producto existente
       const existingProduct = this.products[existingProductIndex];
@@ -63,7 +61,7 @@ class ProductManager {
       await this.saveProductsToFile(this.products);
       return existingProduct.id;
     }
-  
+
     // Agregar un nuevo producto
     const id = this.generateProductId();
     product.id = id;
@@ -72,40 +70,38 @@ class ProductManager {
     return id;
   }
 
-async updateProduct(id, updatedFields) {
-  await this.loadProductsFromFile();
-  const product = this.products.find((p) => p.id === id);
-  if (!product) {
-    throw new Error('Product not found');
+  async updateProduct(id, updatedFields) {
+    await this.loadProductsFromFile();
+    const product = this.products.find((p) => p.id === id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    Object.assign(product, updatedFields);
+    await this.saveProductsToFile(this.products);
   }
-  Object.assign(product, updatedFields);
-  await this.saveProductsToFile(this.products);
-}
 
-async updateProductByCode(code, updatedFields) {
-  await this.loadProductsFromFile();
-  const productIndex = this.products.findIndex((p) => p.code === code);
-  if (productIndex === -1) {
-    throw new Error('Product not found');
+  async updateProductByCode(code, updatedFields) {
+    await this.loadProductsFromFile();
+    const productIndex = this.products.findIndex((p) => p.code === code);
+    if (productIndex === -1) {
+      throw new Error('Product not found');
+    }
+    const product = this.products[productIndex];
+    Object.assign(product, updatedFields);
+    await this.saveProductsToFile(this.products);
   }
-  const product = this.products[productIndex];
-  Object.assign(product, updatedFields);
-  await this.saveProductsToFile(this.products);
-}
 
-
-async deleteProductById(id) {
-  const productId = parseInt(id); // Parsear el id como entero
-  await this.loadProductsFromFile();
-  const index = this.products.findIndex((p) => p.id === productId);
-  if (index === -1) {
-    throw new Error('Product not found');
+  async deleteProductById(id) {
+    const productId = parseInt(id); // Parsear el id como entero
+    await this.loadProductsFromFile();
+    const index = this.products.findIndex((p) => p.id === productId);
+    if (index === -1) {
+      throw new Error('Product not found');
+    }
+    const deletedProduct = this.products.splice(index, 1);
+    await this.saveProductsToFile(this.products);
+    return deletedProduct;
   }
-  const deletedProduct = this.products.splice(index, 1);
-  await this.saveProductsToFile(this.products);
-  return deletedProduct;
-}
-
 
   async deleteProductByCode(code) {
     await this.loadProductsFromFile();
@@ -117,7 +113,6 @@ async deleteProductById(id) {
     await this.saveProductsToFile(this.products);
     return deletedProduct;
   }
-  
 
   generateProductId() {
     let id = 1;
@@ -127,6 +122,11 @@ async deleteProductById(id) {
     }
     return id;
   }
+
+  on(eventName, listener) {
+    this.addListener(eventName, listener);
+  }
 }
 
 module.exports = ProductManager;
+
