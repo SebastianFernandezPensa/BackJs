@@ -1,8 +1,20 @@
-const express = require('express');
+import express from 'express';
+import ProductManager from '../dao/managers/productManager.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Obtener la ruta del archivo actual
+const currentFilePath = fileURLToPath(import.meta.url);
+
+// Obtener el directorio base
+const currentDir = dirname(currentFilePath);
+
+// Utilizar `currentDir` en lugar de `__dirname` en tu código
+const productManager = new ProductManager(path.join(currentDir, '../src/productos.json'));
+
 const router = express.Router();
-const ProductManager = require('../src/productManager');
-const path = require('path');
-const productManager = new ProductManager(path.join(__dirname, '../src/productos.json'));
+
 
 // Ruta raíz GET /api/products
 router.get('/', async (req, res) => {
@@ -67,8 +79,6 @@ router.put('/:code', async (req, res) => {
   }
 });
 
-
-
 router.delete('/:code', async (req, res) => {
   try {
     const productCode = req.params.code;
@@ -89,12 +99,8 @@ router.delete('/:code', async (req, res) => {
   }
 });
 
+export default router;
 
-
-
-
-
-module.exports = router;
 
 
 

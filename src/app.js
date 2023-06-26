@@ -1,33 +1,52 @@
-const path = require('path');
-const express = require('express');
+import path from 'path';
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import exphbs from 'express-handlebars';
+import mongoose from 'mongoose';
+
+import ProductManager from '../dao/managers/productManager.js';
+import CartManager from '../dao/managers/cartManager.js';
+
+import routerProductos from '../routes/routerProducts.js';
+import cartRouter from '../routes/routerCart.js';
+
+import CartModel from '../dao/models/cartModel.js';
+import MessageModel from '../dao/models/messageModel.js';
+import ProductModel from '../dao/models/productModel.js';
+
 const app = express();
-const routerProductos = require('../routes/routerProducts');
-const cartRouter = require('../routes/routerCart');
-const http = require('http');
 const server = http.createServer(app);
-const io = require('socket.io')(server);
-const exphbs = require('express-handlebars').create({});
+const io = new Server(server);
 
-const ProductManager = require('./productManager');
-const productManager = new ProductManager(path.join(__dirname, './productos.json'));
+const mongoDBURL = 'mongodb://localhost:27017';
+mongoose.connect(mongoDBURL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-const CartManager = require('./cartManager');
-const cartManager = new CartManager(path.join(__dirname, './carts.json'));
+const currentFilePath = fileURLToPath(import.meta.url);
+const currentDir = dirname(currentFilePath);
 
-app.engine('hbs', exphbs.engine);
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'hbs');
+
+// Configurar Handlebars como el motor de plantillas
+const handlebars = exphbs.create();
+app.engine('handlebars', handlebars.engine);
+app.set('views', path.join(currentDir, 'views'));
+app.set('view engine', 'handlebars');
 
 app.use(express.json());
+
+const productManager = new ProductManager(ProductModel);
+const cartManager = new CartManager(CartModel);
 
 const PORT = 8080;
 
 app.use('/api/products', routerProductos);
 
 app.use('/api/carts', cartRouter);
-
-app.use('/socket.io', express.static(path.join(__dirname, 'node_modules/socket.io/client-dist')));
-
 
 // Ruta para renderizar la vista home.handlebars
 app.get('/', async (req, res) => {
@@ -51,8 +70,6 @@ app.get('/realtimeproducts', async (req, res) => {
   }
 });
 
-
-
 io.on('connection', (socket) => {
   console.log('New client connected');
 
@@ -65,12 +82,12 @@ io.on('connection', (socket) => {
   // Manejar evento 'createProduct' para crear un nuevo producto
   socket.on('createProduct', async (product) => {
     try {
-      const productId = await productManager.addProduct(product);
+      const newProduct = await productManager.addProduct(product);
 
-      // Emitir evento 'update' con la lista actualizada de productos a todos los clientes
-      io.emit('update', await productManager.getProducts());
+      // Emitir evento 'update' con el producto recién creado a todos los clientes
+      io.emit('update', newProduct);
 
-      console.log(`Product created with ID: ${productId}`);
+      console.log('Product created:', newProduct);
     } catch (error) {
       console.error('Error creating product:', error);
     }
@@ -79,14 +96,60 @@ io.on('connection', (socket) => {
   // Manejar evento 'deleteProduct' para eliminar un producto
   socket.on('deleteProduct', async (productId) => {
     try {
-      await productManager.deleteProductById(productId);
+      await productManager.deleteProduct(productId);
 
-      // Emitir evento 'update' con la lista actualizada de productos a todos los clientes
-      io.emit('update', await productManager.getProducts());
+      // Emitir evento 'update' con el ID del producto eliminado a todos los clientes
+      io.emit('delete', productId);
 
-      console.log(`Product deleted with ID: ${productId}`);
+      console.log('Product deleted:', productId);
     } catch (error) {
       console.error('Error deleting product:', error);
+    }
+  });
+
+  // Manejar evento 'addToCart' para agregar un producto al carrito
+  socket.on('addToCart', async ({ cartId, productId }) => {
+    try {
+      const updatedCart = await cartManager.addProductToCart(cartId, productId);
+
+      // Emitir evento 'updateCart' con el carrito actualizado a todos los clientes
+      io.emit('updateCart', updatedCart);
+
+      console.log('Product added to cart:', { cartId, productId });
+    } catch (error) {
+      console.error('Error adding product to cart:', error);
+    }
+  });
+
+  // Manejar evento 'removeFromCart' para eliminar un producto del carrito
+  socket.on('removeFromCart', async ({ cartId, productId }) => {
+    try {
+      const updatedCart = await cartManager.removeProductFromCart(cartId, productId);
+
+      // Emitir evento 'updateCart' con el carrito actualizado a todos los clientes
+      io.emit('updateCart', updatedCart);
+
+      console.log('Product removed from cart:', { cartId, productId });
+    } catch (error) {
+      console.error('Error removing product from cart:', error);
+    }
+  });
+
+  // Manejar evento 'sendMessage' para guardar un mensaje
+  socket.on('sendMessage', async (data) => {
+    try {
+      // Crear una nueva instancia del modelo de mensaje
+      const newMessage = new MessageModel({
+        user: data.user,
+        message: data.message,
+      });
+
+      // Guardar el mensaje en la base de datos
+      await newMessage.save();
+
+      console.log('Message saved:', newMessage);
+    } catch (error) {
+      console.error('Error saving message:', error);
     }
   });
 
@@ -95,26 +158,6 @@ io.on('connection', (socket) => {
   });
 });
 
-
 server.listen(PORT, () => {
   console.log(`Servidor Express escuchando en el puerto ${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-

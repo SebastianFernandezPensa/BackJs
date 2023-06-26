@@ -1,8 +1,21 @@
-const express = require('express');
+import express from 'express';
+import CartManager from '../dao/managers/cartManager.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Obtener la ruta del archivo actual
+const currentFilePath = fileURLToPath(import.meta.url);
+
+// Obtener el directorio base
+const currentDir = dirname(currentFilePath);
+
+// Utilizar `currentDir` en lugar de `__dirname` en tu código
+const cartManager = new CartManager(path.join(currentDir, '../src/carts.json'));
+
+
 const router = express.Router();
-const CartManager = require('../src/cartManager');
-const path = require('path');
-const cartManager = new CartManager(path.join(__dirname, '../src/carts.json'));
+
 
 // Ruta raíz POST /api/carts
 router.post('/', async (req, res) => {
@@ -44,4 +57,4 @@ router.post('/:cid/product/:pid', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
