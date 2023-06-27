@@ -1,16 +1,11 @@
 import mongoose from 'mongoose';
 
-// const mongoDBURL = 'mongodb://localhost:27017/ecommerce';
-// mongoose.connect(mongoDBURL, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
-
 const cartSchema = new mongoose.Schema({
   userId: {
-    type: String,
-    required: true
-  },
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User'  
+  }, 
   products: [
     {
       product: {
@@ -38,7 +33,10 @@ const cartSchema = new mongoose.Schema({
   }
 });
 
+
+
 const CartModel = mongoose.model('Cart', cartSchema);
 
 export default CartModel;
+
 

@@ -1,5 +1,6 @@
 import path from 'path';
 import express from 'express';
+import bodyParser from 'body-parser';
 import http from 'http';
 import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
@@ -7,35 +8,47 @@ import { dirname } from 'path';
 import exphbs from 'express-handlebars';
 import mongoose from 'mongoose';
 
-import ProductManager from '../dao/managers/productManager.js';
-import CartManager from '../dao/managers/cartManager.js';
-
 import routerProductos from '../routes/routerProducts.js';
 import cartRouter from '../routes/routerCart.js';
+import router from '../routes/routerChat.js';
+
+import ProductManager from '../dao/managers/productManager.js';
+import CartManager from '../dao/managers/cartManager.js';
 
 import CartModel from '../dao/models/cartModel.js';
 import MessageModel from '../dao/models/messageModel.js';
 import ProductModel from '../dao/models/productModel.js';
 
 const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 const server = http.createServer(app);
 const io = new Server(server);
 
-const mongoDBURL = 'mongodb://localhost:27017';
+const mongoDBURL =
+  'mongodb+srv://sebastianfernandez772:1234@coderclaster.0fwmnsx.mongodb.net/ecommerce?retryWrites=true&w=majority';
 mongoose.connect(mongoDBURL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+}).then(() => {
+  console.log('Conexión exitosa a MongoDB');
+}).catch((error) => {
+  console.error('Error al conectar a MongoDB:', error);
 });
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDir = dirname(currentFilePath);
 
-
 // Configurar Handlebars como el motor de plantillas
-const handlebars = exphbs.create();
+const handlebars = exphbs.create({
+  allowProtoProperties: true,
+  allowProtoMethods: true
+});
+
 app.engine('handlebars', handlebars.engine);
 app.set('views', path.join(currentDir, 'views'));
 app.set('view engine', 'handlebars');
+
 
 app.use(express.json());
 
@@ -47,6 +60,8 @@ const PORT = 8080;
 app.use('/api/products', routerProductos);
 
 app.use('/api/carts', cartRouter);
+
+app.use('/', router);
 
 // Ruta para renderizar la vista home.handlebars
 app.get('/', async (req, res) => {
@@ -161,3 +176,4 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log(`Servidor Express escuchando en el puerto ${PORT}`);
 });
+

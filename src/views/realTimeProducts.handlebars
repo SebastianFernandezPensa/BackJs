@@ -21,16 +21,35 @@
 
     // Función para enviar el formulario de creación de productos
     function createProduct() {
+      var name = document.getElementById('name').value;
       var title = document.getElementById('title').value;
       var price = document.getElementById('price').value;
-      var product = { title: title, price: price };
+      var category = document.getElementById('category').value;
+      var description = document.getElementById('description').value;
+
+      // Verificar si los campos requeridos están presentes
+      if (!title || !price || !category || !description) {
+        alert('Por favor, complete todos los campos requeridos');
+        return;
+      }
+
+      var product = {
+        name:name,
+        title: title,
+        price: price,
+        category: category,
+        description: description
+      };
 
       // Enviar el producto al servidor a través de Socket.IO
       socket.emit('createProduct', product);
 
       // Limpiar los campos del formulario
+      document.getElementById('name').value = '';
       document.getElementById('title').value = '';
       document.getElementById('price').value = '';
+      document.getElementById('category').value = '';
+      document.getElementById('description').value = '';
     }
 
     // Función para enviar el formulario de eliminación de productos
@@ -47,16 +66,21 @@
 </head>
 <body>
   <h1>Lista de productos en tiempo real</h1>
-  <ul id="product-list">
-    {{#each products}}
-    <li>{{title}} - Precio: {{price}}</li>
-    {{/each}}
+  <ul id="product-list">  
+    {{#each this}}    
+      <li>{{price}}</li>
+    {{/each}}    
   </ul>
 
   <h2>Crear producto</h2>
   <form onsubmit="event.preventDefault(); createProduct();">
     <input type="text" id="title" placeholder="Título" required>
+    <input type="text" id="name" placeholder="Nombre del producto" required>
     <input type="number" id="price" placeholder="Precio" required>
+    <!-- Agregar campos adicionales requeridos -->
+    <input type="text" id="category" placeholder="Categoría" required>
+    <input type="text" id="description" placeholder="Descripción" required>
+    <!-- Fin de los campos adicionales requeridos -->
     <button type="submit">Crear</button>
   </form>
 
@@ -67,3 +91,5 @@
   </form>
 </body>
 </html>
+
+

@@ -1,22 +1,21 @@
 import mongoose from 'mongoose';
-// const mongoDBURL = 'mongodb://localhost:27017/ecommerce';
-// mongoose.connect(mongoDBURL, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
 
 const messageSchema = new mongoose.Schema({
   roomId: {
     type: String,
-    required: true
+    required: false // Hacer que el campo roomId sea opcional
   },
   sender: {
     type: String,
-    required: true
+    required: false // Hacer que el campo sender sea opcional
   },
   message: {
     type: String,
-    required: true
+    required: true // Mantener el campo message como requerido
+  }, 
+  user: {
+    type: String,
+    required: true // Mantener el campo message como requerido
   },
   timestamp: {
     type: Date,
@@ -24,7 +23,9 @@ const messageSchema = new mongoose.Schema({
   }
 });
 
+
 const MessageModel = mongoose.model('Message', messageSchema);
 
 export default MessageModel;
+
 

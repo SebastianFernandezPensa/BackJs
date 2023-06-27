@@ -2,13 +2,17 @@
 <html>
 <head>
   <title>Lista de productos</title>
-</head>
+</head> 
 <body>
   <h1>Lista de productos</h1>
   <ul>
-    {{#each products}}
-    <li>{{title}} - Precio: {{price}}</li>
-    {{/each}}
+  {{#each products}}    
+  <li>
+    <p>{{name}}</p>
+    <p>{{price}}</p> 
+  </li>    
+  {{/each}}  
   </ul>
-</body>
+</body> 
 </html>
+

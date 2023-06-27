@@ -15,7 +15,6 @@ const productManager = new ProductManager(path.join(currentDir, '../src/producto
 
 const router = express.Router();
 
-
 // Ruta raíz GET /api/products
 router.get('/', async (req, res) => {
   try {
@@ -46,8 +45,16 @@ router.get('/:pid', async (req, res) => {
 // Ruta POST /api/products
 router.post('/', async (req, res) => {
   try {
-    // Código del manejo del POST
+    const { name, price, description, category } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
 
+    const product = { name, price, description, category };
+
+    const productId = await productManager.addProduct(product);
+
+    res.status(201).json({ id: productId, message: 'Product created successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -71,6 +78,12 @@ router.put('/:code', async (req, res) => {
 
     // Actualizar los campos especificados en el producto
     await productManager.updateProduct(existingProduct.id, updatedFields);
+
+    // Obtener el producto actualizado para emitir en el evento 'update'
+    const updatedProduct = await productManager.getProductById(existingProduct.id);
+
+    // Emitir el evento 'update' con los datos del producto actualizado
+    productManager.emit('update', updatedProduct);
 
     return res.json({ message: 'Product updated successfully' });
   } catch (error) {
@@ -100,8 +113,3 @@ router.delete('/:code', async (req, res) => {
 });
 
 export default router;
-
-
-
-
-  

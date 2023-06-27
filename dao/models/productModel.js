@@ -1,9 +1,5 @@
 import mongoose from 'mongoose';
-// const mongoDBURL = 'mongodb://localhost:27017/ecommerce';
-// mongoose.connect(mongoDBURL, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
+
 
 const productSchema = new mongoose.Schema({
   name: {

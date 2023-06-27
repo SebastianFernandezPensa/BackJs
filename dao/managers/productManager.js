@@ -1,14 +1,27 @@
+import { EventEmitter } from 'events';
 import ProductModel from '../models/productModel.js';
 
-class ProductManager {
+class ProductManager extends EventEmitter {
+  constructor(io) {
+    super();
+    this.io = io;
+  }
+
   async getProducts() {
     try {
       const products = await ProductModel.find({});
-      return products;
+      const formattedProducts = products.map(product => {
+        return {
+          name: product.name,
+          price: product.price
+        };
+      });
+      return formattedProducts;
     } catch (error) {
       throw new Error(`Error retrieving products: ${error}`);
     }
   }
+  
 
   async getProductById(id) {
     try {
@@ -37,6 +50,8 @@ class ProductManager {
   async addProduct(product) {
     try {
       const createdProduct = await ProductModel.create(product);
+      this.emit('change');
+      this.io.emit('update', createdProduct); // Emitir evento 'update' con el producto recién creado a todos los clientes
       return createdProduct.id;
     } catch (error) {
       throw new Error(`Error creating product: ${error}`);
@@ -49,6 +64,8 @@ class ProductManager {
       if (!product) {
         throw new Error('Product not found');
       }
+      this.emit('change');
+      this.io.emit('update', product); // Emitir evento 'update' con el producto actualizado a todos los clientes
     } catch (error) {
       throw new Error(`Error updating product: ${error}`);
     }
@@ -60,6 +77,8 @@ class ProductManager {
       if (!product) {
         throw new Error('Product not found');
       }
+      this.emit('change');
+      this.io.emit('update', product); // Emitir evento 'update' con el producto actualizado a todos los clientes
     } catch (error) {
       throw new Error(`Error updating product: ${error}`);
     }
@@ -71,6 +90,8 @@ class ProductManager {
       if (!deletedProduct) {
         throw new Error('Product not found');
       }
+      this.emit('change');
+      this.io.emit('update', deletedProduct.id); // Emitir evento 'update' con el ID del producto eliminado a todos los clientes
       return deletedProduct;
     } catch (error) {
       throw new Error(`Error deleting product: ${error}`);
@@ -83,6 +104,8 @@ class ProductManager {
       if (!deletedProduct) {
         throw new Error('Product not found');
       }
+      this.emit('change');
+      this.io.emit('update', deletedProduct.id); // Emitir evento 'update' con el ID del producto eliminado a todos los clientes
       return deletedProduct;
     } catch (error) {
       throw new Error(`Error deleting product: ${error}`);
@@ -91,6 +114,7 @@ class ProductManager {
 }
 
 export default ProductManager;
+
 
 
 
