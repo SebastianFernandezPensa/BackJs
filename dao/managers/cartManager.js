@@ -2,10 +2,10 @@ import CartModel from '../models/cartModel.js';
 import ProductModel from '../models/productModel.js';
 
 class CartManager {
-  async createCart(userId) {
+  async createCart() {
     try {
       const newCart = new CartModel({
-        userId: userId,
+        // userId: userId,
         products: [],
         total: 0
       });
@@ -32,7 +32,7 @@ class CartManager {
       if (!cart) {
         throw new Error('Cart not found');
       }
-      const product = await ProductModel.findById(productId);
+      const product =  ProductModel.findById(productId);
       if (!product) {
         throw new Error('Product not found');
       }
@@ -42,10 +42,9 @@ class CartManager {
       } else {
         cart.products.push({ product: productId, quantity: 1 });
       }
-      
-      await cart.save();
+      cart.save();
     } catch (error) {
-      throw new Error('Failed to add product to cart');
+      throw new Error('Failed product to cart');
     }
   }
 

@@ -10,8 +10,9 @@ const cartManager = new CartManager(CartModel);
 // Ruta raíz POST /api/carts
 router.post('/', async (req, res) => {
   try {
-    const userId = generateUserId(req.session.id); // Obtén el ID del usuario utilizando la función generateUserId
-    const newCartId = await cartManager.createCart(userId);
+    // const userId = generateUserId(req.session.id); // Obtén el ID del usuario utilizando la función generateUserId
+    // console.log('soy el user id', userId)
+    const newCartId = await cartManager.createCart();
 
     res.status(201).json({ message: 'Cart created successfully', cartId: newCartId });
   } catch (error) {
@@ -36,14 +37,15 @@ router.get('/:cid', async (req, res) => {
 });
 
 // Ruta POST /api/carts/:cid/product/:pid
-router.post('/:cid/product/:pid', async (req, res) => {
+router.get('/:cid/product/:pid', async (req, res) => {
   try {
-    const cartId = req.params.cid;
+    const cartId = req.params.cid.trim();
     const productId = req.params.pid;
 
     await cartManager.addProductToCart(cartId, productId);
 
-    res.json({ message: 'Product added to cart successfully' });
+
+    res.status(201).json({ message: 'Product added to cart successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
