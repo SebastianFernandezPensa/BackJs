@@ -5,7 +5,6 @@ class CartManager {
   async createCart() {
     try {
       const newCart = new CartModel({
-        // userId: userId,
         products: [],
         total: 0
       });
@@ -32,7 +31,7 @@ class CartManager {
       if (!cart) {
         throw new Error('Cart not found');
       }
-      const product =  ProductModel.findById(productId);
+      const product = await ProductModel.findById(productId);
       if (!product) {
         throw new Error('Product not found');
       }
@@ -42,13 +41,13 @@ class CartManager {
       } else {
         cart.products.push({ product: productId, quantity: 1 });
       }
-      cart.save();
+      await cart.save();
     } catch (error) {
       throw new Error('Failed product to cart');
     }
   }
 
-  // Agrega más métodos según tus necesidades
+
 
 }
 
