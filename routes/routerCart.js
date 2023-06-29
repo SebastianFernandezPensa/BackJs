@@ -1,6 +1,5 @@
 import express from 'express';
 import CartManager from '../dao/managers/cartManager.js';
-import { generateUserId } from '../utilitis/util.js';
 import CartModel from '../dao/models/cartModel.js';
 
 const router = express.Router();

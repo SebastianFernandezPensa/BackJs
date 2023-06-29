@@ -25,6 +25,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const server = http.createServer(app);
 const io = new Server(server);
 
+//Configurar Mongo
+
 const mongoDBURL =
   'mongodb+srv://sebastianfernandez772:1234@coderclaster.0fwmnsx.mongodb.net/ecommerce?retryWrites=true&w=majority';
 mongoose.connect(mongoDBURL, {
