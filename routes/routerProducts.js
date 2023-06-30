@@ -1,8 +1,19 @@
-const express = require('express');
+import express from 'express';
+import ProductManager from '../dao/managers/productManager.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Obtener la ruta del archivo actual
+const currentFilePath = fileURLToPath(import.meta.url);
+
+// Obtener el directorio base
+const currentDir = dirname(currentFilePath);
+
+// Utilizar `currentDir` en lugar de `__dirname` en tu código
+const productManager = new ProductManager(path.join(currentDir, '../src/productos.json'));
+
 const router = express.Router();
-const ProductManager = require('../src/productManager');
-const path = require('path');
-const productManager = new ProductManager(path.join(__dirname, '../src/productos.json'));
 
 // Ruta raíz GET /api/products
 router.get('/', async (req, res) => {
@@ -34,8 +45,16 @@ router.get('/:pid', async (req, res) => {
 // Ruta POST /api/products
 router.post('/', async (req, res) => {
   try {
-    // Código del manejo del POST
+    const { name, price, description, category } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
 
+    const product = { name, price, description, category };
+
+    const productId = await productManager.addProduct(product);
+
+    res.status(201).json({ id: productId, message: 'Product created successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -60,14 +79,18 @@ router.put('/:code', async (req, res) => {
     // Actualizar los campos especificados en el producto
     await productManager.updateProduct(existingProduct.id, updatedFields);
 
+    // Obtener el producto actualizado para emitir en el evento 'update'
+    const updatedProduct = await productManager.getProductById(existingProduct.id);
+
+    // Emitir el evento 'update' con los datos del producto actualizado
+    productManager.emit('update', updatedProduct);
+
     return res.json({ message: 'Product updated successfully' });
   } catch (error) {
     console.error('Error updating product:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
 
 router.delete('/:code', async (req, res) => {
   try {
@@ -89,13 +112,4 @@ router.delete('/:code', async (req, res) => {
   }
 });
 
-
-
-
-
-
-module.exports = router;
-
-
-
-  
+export default router;
