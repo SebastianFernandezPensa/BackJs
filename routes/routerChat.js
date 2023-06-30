@@ -35,7 +35,7 @@ router.post('/chat', async (req, res) => {
   
       res.redirect('/chat');
     } catch (error) {
-      console.log(error); // Imprime el error en la consola
+      console.log(error); 
       res.status(500).json({ error: 'Internal server error' });
     }
   });
