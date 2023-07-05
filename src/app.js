@@ -25,8 +25,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const server = http.createServer(app);
 const io = new Server(server);
 
-//Configurar Mongo
-
+// Configurar Mongo
 const mongoDBURL =
   'mongodb+srv://sebastianfernandez772:1234@coderclaster.0fwmnsx.mongodb.net/ecommerce?retryWrites=true&w=majority';
 mongoose.connect(mongoDBURL, {
@@ -51,8 +50,8 @@ app.engine('handlebars', handlebars.engine);
 app.set('views', path.join(currentDir, 'views'));
 app.set('view engine', 'handlebars');
 
-
 app.use(express.json());
+app.use(express.static('public'));
 
 const productManager = new ProductManager(ProductModel);
 const cartManager = new CartManager(CartModel);
@@ -60,9 +59,7 @@ const cartManager = new CartManager(CartModel);
 const PORT = 8080;
 
 app.use('/api/products', routerProductos);
-
 app.use('/api/carts', cartRouter);
-
 app.use('/', router);
 
 // Ruta para renderizar la vista home.handlebars
@@ -101,7 +98,7 @@ io.on('connection', (socket) => {
     try {
       const newProduct = await productManager.addProduct(product);
 
-      // Emitir evento 'update' con el producto recién creado a todos los clientes
+      // Emitir evento 'update' con el producto recién creado atodos los clientes
       io.emit('update', newProduct);
 
       console.log('Product created:', newProduct);
@@ -113,7 +110,7 @@ io.on('connection', (socket) => {
   // Manejar evento 'deleteProduct' para eliminar un producto
   socket.on('deleteProduct', async (productId) => {
     try {
-      await productManager.deleteProduct(productId);
+      await productManager.deleteProductById(productId);
 
       // Emitir evento 'update' con el ID del producto eliminado a todos los clientes
       io.emit('delete', productId);
@@ -175,7 +172,45 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, () => {
+// Modificar el método GET / para cumplir con los requisitos mencionados
+
+app.get('/', async (req, res) => {
+  try {
+    const { limit = 10, page = 1, sort, query } = req.query;
+
+    let filteredProducts = await productManager.getProducts();
+
+    if (query) {
+      filteredProducts = filteredProducts.filter(product =>
+        product.name.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    if (sort === 'asc') {
+      filteredProducts.sort((a, b) => a.price - b.price);
+    } else if (sort === 'desc') {
+      filteredProducts.sort((a, b) => b.price - a.price);
+    }
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+    res.json({
+      success: true,
+      products: paginatedProducts,
+      page: page,
+      limit: limit,
+      total: filteredProducts.length
+    });
+  } catch (error) {
+    console.error('Error retrieving products:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+server.listen(PORT,() => {
   console.log(`Servidor Express escuchando en el puerto ${PORT}`);
 });
 

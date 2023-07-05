@@ -48,6 +48,62 @@ router.post('/:cid/product/:pid', async (req, res) => {
   }
 });
 
+// Ruta DELETE /api/carts/:cid/products/:pid
+router.delete('/:cid/products/:pid', async (req, res) => {
+  try {
+    const cartId = req.params.cid;
+    const productId = req.params.pid;
+
+    await cartManager.removeProductFromCart(cartId, productId);
+
+    res.json({ message: 'Product removed from cart successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+// Ruta PUT /api/carts/:cid
+router.put('/:cid', async (req, res) => {
+  try {
+    const cartId = req.params.cid;
+    const products = req.body.products;
+
+    await cartManager.updateCart(cartId, products);
+
+    res.json({ message: 'Cart updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Ruta PUT /api/carts/:cid/products/:pid
+router.put('/:cid/products/:pid', async (req, res) => {
+  try {
+    const cartId = req.params.cid;
+    const productId = req.params.pid;
+    const quantity = req.body.quantity;
+
+    await cartManager.updateProductQuantity(cartId, productId, quantity);
+
+    res.json({ message: 'Product quantity updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.delete('/:cid', async (req, res) => {
+  try {
+    const cartId = req.params.cid;
+    await cartManager.clearCart(cartId);
+    res.json({ message: 'Cart cleared successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 export default router;
 
 

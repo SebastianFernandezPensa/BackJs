@@ -7,20 +7,42 @@ class ProductManager extends EventEmitter {
     this.io = io;
   }
 
-  async getProducts() {
+  async getProducts(limit = 10, page = 1, sort = '', query = '', category = '') {
     try {
-      const products = await ProductModel.find({});
-      const formattedProducts = products.map(product => {
-        return {
-          name: product.name,
-          price: product.price
-        };
-      });
-      return formattedProducts;
+      const startIndex = (page - 1) * limit;
+      const endIndex = page * limit;
+  
+      let filter = {};
+      if (query) {
+        filter.name = { $regex: query, $options: 'i' };
+      }
+      if (category) {
+        filter.category = category;
+      }
+  
+      const countPromise = ProductModel.countDocuments(filter);
+      const productsPromise = ProductModel.find(filter)
+        .sort({ price: sort === 'desc' ? -1 : 1 })
+        .skip(startIndex)
+        .limit(limit);
+  
+      const [total, products] = await Promise.all([countPromise, productsPromise]);
+  
+      const totalPages = Math.ceil(total / limit);
+  
+      return {
+        total,
+        page,
+        totalPages,
+        products,
+      };
     } catch (error) {
       throw new Error(`Error retrieving products: ${error}`);
     }
   }
+  
+  
+  
   
 
   async getProductById(id) {
