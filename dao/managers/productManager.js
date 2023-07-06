@@ -7,14 +7,14 @@ class ProductManager extends EventEmitter {
     this.io = io;
   }
 
-  async getProducts(limit = 10, page = 1, sort = '', query = '', category = '') {
+  async getProducts(limit = 10, page = 1, sort = '', query='', name = '', category = '') {
     try {
       const startIndex = (page - 1) * limit;
       const endIndex = page * limit;
   
       let filter = {};
-      if (query) {
-        filter.name = { $regex: query, $options: 'i' };
+      if (name) {
+        filter.name = name;
       }
       if (category) {
         filter.category = category;

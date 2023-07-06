@@ -19,33 +19,34 @@ const router = express.Router();
 // Ruta raíz GET /api/products
 router.get('/', async (req, res) => {
   try {
-    const { limit = 10, page = 1, sort = '', query = '', category = '' } = req.query;
+    const { limit = 10, page = 1, sort = '', query = '', name= '', category = '' } = req.query;
     const products = await productManager.getProducts(
       parseInt(limit),
       parseInt(page),
       sort,
       query,
-      category
+      name,
+      category,
     );
-
     // Calcular el número total de páginas
     const totalPages = Math.ceil(products.total / limit);
-
     // Construir los datos de paginación
     const paginationData = {
       status: 'success',
       payload: products.products,
       totalPages,
-      prevPage: page > 1 ? page - 1 : null,
-      nextPage: page < totalPages ? page + 1 : null,
-      page: page,
-      hasPrevPage: page > 1,
-      hasNextPage: page < totalPages,
-      prevLink: page > 1 ? `/api/products?limit=${limit}&page=${page - 1}&sort=${sort}&query=${query}` : null,
-      nextLink: page < totalPages ? `/api/products?limit=${limit}&page=${page + 1}&sort=${sort}&query=${query}` : null
+      prevPage: parseInt(page) > 1 ? parseInt(page) - 1 : null,
+      nextPage: parseInt(page) < totalPages ? parseInt(page) + 1 : null,
+      page: parseInt(page),
+      hasPrevPage: parseInt(page) > 1,
+      hasNextPage: parseInt(page) < totalPages,
+      prevLink: parseInt(page) > 1 ? `/api/products?limit=${limit}&page=${parseInt(page) - 1}` : null,
+      nextLink: parseInt(page) < totalPages ? `/api/products?limit=${limit}&page=${parseInt(page) + 1}` : null
     };
-
-    res.json(paginationData);
+    const context = {
+      products: paginationData.payload.map(p => p.toObject())
+    };
+    res.render('products', context);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }

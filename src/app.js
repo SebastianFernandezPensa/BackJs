@@ -43,7 +43,8 @@ const currentDir = dirname(currentFilePath);
 // Configurar Handlebars como el motor de plantillas
 const handlebars = exphbs.create({
   allowProtoProperties: true,
-  allowProtoMethods: true
+  allowProtoMethods: true,
+  allowProtoPropertiesByDefault: true
 });
 
 app.engine('handlebars', handlebars.engine);
